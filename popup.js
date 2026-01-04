@@ -2,6 +2,7 @@ const statusEl = document.getElementById("status");
 const presetEl = document.getElementById("preset");
 const btn = document.getElementById("fillBtn");
 
+// Updates the popup UI status message and styling
 const setStatus = (type, text) => {
   statusEl.className = `status ${type}`;
   statusEl.textContent = text;
@@ -10,8 +11,9 @@ const setStatus = (type, text) => {
 btn.addEventListener("click", async () => {
   try {
     btn.disabled = true;
-    btn.textContent = "Dolduruluyor...";
+    btn.textContent = "Filling form...";
 
+    // Get the currently active tab
     const [tab] = await chrome.tabs.query({
       active: true,
       currentWindow: true,
@@ -22,63 +24,80 @@ btn.addEventListener("click", async () => {
     const results = await chrome.scripting.executeScript({
       target: { tabId: tab.id },
       func: (presetName) => {
-        // content.js mantığını burada çalıştırıyoruz (en basit yöntem)
-        // İstersen ayrı dosya olarak da bırakabiliriz; sonraki adımda refactor yaparız.
+        // Run the autofill logic inside the active page context (simplest approach).
+        // We can refactor this into a separate content script later if needed.
+
         const randInt = (min, max) =>
           Math.floor(Math.random() * (max - min + 1)) + min;
+
         const pick = (arr) => arr[randInt(0, arr.length - 1)];
 
+        // English/global sample data pools
         const firstNames = [
-          "Mustafa",
-          "Ahmet",
-          "Mehmet",
-          "Ayse",
-          "Fatma",
-          "Elif",
-          "Zeynep",
-          "Mert",
-          "Deniz",
-          "Ece",
+          "John",
+          "Michael",
+          "David",
+          "Emily",
+          "Sarah",
+          "Emma",
+          "Olivia",
+          "Daniel",
+          "James",
+          "Sophia",
         ];
-        const lastNames = [
-          "Yilmaz",
-          "Kaya",
-          "Demir",
-          "Sahin",
-          "Celik",
-          "Aydin",
-          "Arslan",
-          "Dogan",
-          "Kilic",
-          "Aslan",
-        ];
-        const streets = [
-          "Ataturk Cd.",
-          "Cumhuriyet Sk.",
-          "Bagdat Cd.",
-          "Inonu Cd.",
-          "Gaziosmanpasa Sk.",
-          "Sehitler Cd.",
-        ];
-        const districts = [
-          "Kadikoy",
-          "Besiktas",
-          "Sisli",
-          "Cankaya",
-          "Konak",
-          "Nilufer",
-          "Muratpasa",
-        ];
-        const cities = ["Istanbul", "Ankara", "Izmir", "Bursa", "Antalya"];
-        const safeDomains = ["example.com", "test.com", "mail.test"];
 
-        const genPhoneTR = () => {
-          const start = "5" + randInt(0, 9);
+        const lastNames = [
+          "Smith",
+          "Johnson",
+          "Brown",
+          "Taylor",
+          "Anderson",
+          "Thomas",
+          "Jackson",
+          "White",
+          "Harris",
+          "Martin",
+        ];
+
+        const streets = [
+          "Main St.",
+          "Oak Street",
+          "Maple Avenue",
+          "Pine Road",
+          "Cedar Lane",
+          "Elm Street",
+        ];
+
+        const districts = [
+          "Downtown",
+          "Midtown",
+          "Uptown",
+          "Central",
+          "West Side",
+          "East Side",
+        ];
+
+        const cities = [
+          "New York",
+          "Los Angeles",
+          "Chicago",
+          "San Francisco",
+          "Seattle",
+          "Austin",
+        ];
+
+        // Safe, non-real domains for testing
+        const safeDomains = ["example.com", "testmail.com", "mail.test"];
+
+        // Generates a neutral/international-style phone number (for testing only)
+        const genPhone = () => {
+          const start = randInt(200, 999); // area-like prefix
           let rest = "";
-          for (let i = 0; i < 8; i++) rest += randInt(0, 9);
-          return start + rest;
+          for (let i = 0; i < 7; i++) rest += randInt(0, 9);
+          return `${start}${rest}`; // 10 digits total
         };
 
+        // Generates a strong random password
         const genPassword = () => {
           const upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
           const lower = "abcdefghijklmnopqrstuvwxyz";
@@ -94,13 +113,16 @@ btn.addEventListener("click", async () => {
 
           const all = upper + lower + digits + special;
           while (pwd.length < len) pwd += all[randInt(0, all.length - 1)];
+
           pwd = pwd
             .split("")
             .sort(() => Math.random() - 0.5)
             .join("");
+
           return pwd;
         };
 
+        // Builds one full random dataset for form filling
         const makeRandomData = () => {
           const firstName = pick(firstNames);
           const lastName = pick(lastNames);
@@ -111,7 +133,7 @@ btn.addEventListener("click", async () => {
             safeDomains
           )}`;
           const password = genPassword();
-          const address = `${pick(streets)} No:${randInt(1, 120)}, ${pick(
+          const address = `${pick(streets)} ${randInt(10, 999)}, ${pick(
             districts
           )}, ${pick(cities)}`;
 
@@ -122,12 +144,13 @@ btn.addEventListener("click", async () => {
             username,
             password,
             address,
-            phone: genPhoneTR(),
+            phone: genPhone(),
           };
         };
 
         const data = makeRandomData();
 
+        // Sets the value and triggers common framework events (React/Angular/etc.)
         const setValue = (el, value) => {
           if (!el || el.disabled || el.readOnly) return false;
           el.focus();
@@ -138,6 +161,7 @@ btn.addEventListener("click", async () => {
           return true;
         };
 
+        // Tries multiple selectors and returns the first match
         const findBySelectors = (selectors) => {
           for (const sel of selectors) {
             const el = document.querySelector(sel);
@@ -146,52 +170,51 @@ btn.addEventListener("click", async () => {
           return null;
         };
 
+        // Common selector variations for typical form fields
         const selectorsMap = {
           firstName: [
             'input[name="firstName"]',
             'input[name="firstname"]',
             'input[id*="first"][id*="name" i]',
             'input[placeholder*="First" i]',
-            'input[placeholder*="Ad" i]',
+            'input[placeholder*="Name" i]',
           ],
           lastName: [
             'input[name="lastName"]',
             'input[name="lastname"]',
             'input[id*="last"][id*="name" i]',
             'input[placeholder*="Last" i]',
-            'input[placeholder*="Soyad" i]',
+            'input[placeholder*="Surname" i]',
           ],
           email: [
             'input[type="email"]',
             'input[name="email"]',
             'input[id*="email" i]',
             'input[placeholder*="email" i]',
-            'input[placeholder*="e-posta" i]',
           ],
           username: [
             'input[name="username"]',
             'input[id*="user" i]',
             'input[placeholder*="username" i]',
-            'input[placeholder*="kullanıcı" i]',
+            'input[placeholder*="user name" i]',
           ],
           confirmPassword: [
             'input[name*="confirm" i][type="password"]',
             'input[id*="confirm" i][type="password"]',
             'input[placeholder*="confirm" i][type="password"]',
-            'input[placeholder*="doğrula" i][type="password"]',
+            'input[placeholder*="re-enter" i][type="password"]',
           ],
           address: [
             'input[name="address"]',
             'input[id*="address" i]',
             'input[placeholder*="address" i]',
-            'input[placeholder*="adres" i]',
           ],
           phone: [
             'input[type="tel"]',
             'input[name*="phone" i]',
             'input[id*="phone" i]',
             'input[placeholder*="phone" i]',
-            'input[placeholder*="telefon" i]',
+            'input[placeholder*="mobile" i]',
           ],
         };
 
@@ -213,6 +236,7 @@ btn.addEventListener("click", async () => {
           setValue(findBySelectors(selectorsMap.username), data.username),
         ]);
 
+        // Password & confirm password handling
         const allPasswordInputs = Array.from(
           document.querySelectorAll('input[type="password"]')
         );
@@ -254,7 +278,7 @@ btn.addEventListener("click", async () => {
         const okCount = results.filter((r) => r[1]).length;
         const fail = results.filter((r) => !r[1]).map((r) => r[0]);
 
-        console.log("QA Autofill ✅ Random data used:", data);
+        console.log("QA Autofill ✅ Random data generated:", data);
         return { okCount, total: results.length, fail, data };
       },
       args: [preset],
@@ -263,25 +287,27 @@ btn.addEventListener("click", async () => {
     const { okCount, total, fail } = results[0].result;
 
     if (okCount === total) {
-      setStatus("ok", `✅ Başarılı: ${okCount}/${total} alan dolduruldu.`);
+      setStatus("ok", `✅ Success: ${okCount}/${total} fields filled.`);
     } else if (okCount > 0) {
       setStatus(
         "warn",
-        `⚠️ Kısmi: ${okCount}/${total} doldu. Eksik: ${fail.join(", ")}`
+        `⚠️ Partial success: ${okCount}/${total} filled. Missing: ${fail.join(
+          ", "
+        )}`
       );
     } else {
       setStatus(
         "err",
-        `❌ Hiç alan bulunamadı. (Bu sayfa farklı isimlendirme kullanıyor olabilir)`
+        "❌ No fields detected. This page may use different naming conventions."
       );
     }
 
-    btn.textContent = "Formu Doldur";
+    btn.textContent = "Fill Form";
     btn.disabled = false;
   } catch (e) {
     console.error(e);
-    setStatus("err", "❌ Hata oluştu. Console’u kontrol et.");
-    btn.textContent = "Formu Doldur";
+    setStatus("err", "❌ An error occurred. Check the console for details.");
+    btn.textContent = "Fill Form";
     btn.disabled = false;
   }
 });

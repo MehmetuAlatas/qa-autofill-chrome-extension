@@ -3,7 +3,7 @@
 **QA Autofill** is a Chrome extension designed to help **manual QA testers and test engineers** speed up their testing workflow by automatically filling web forms with **random and safe test data** in a single click.
 
 > Stop wasting time on repetitive data entry. Focus on testing.
-
+![QA Autofill Demo](autofiller.gif)
 ---
 
 ## 🚀 Features

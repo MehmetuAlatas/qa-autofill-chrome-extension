@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "QA Autofill (Manual Tester)",
+  "name": "QA Autofill – Manual Tester Helper",
   "version": "1.0.1",
-  "description": "Manual testerlar için input alanlarını tek tıkla test datası ile doldurur.",
+  "description": "Automatically fills web form input fields with safe, random test data to speed up manual QA testing.",
   "permissions": ["activeTab", "scripting"],
   "action": {
     "default_title": "QA Autofill",

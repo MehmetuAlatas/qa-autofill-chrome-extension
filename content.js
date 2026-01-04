@@ -14,62 +14,73 @@
     return out;
   };
 
+  // English/global sample data pools
   const firstNames = [
-    "Mustafa",
-    "Ahmet",
-    "Mehmet",
-    "Ayse",
-    "Fatma",
-    "Elif",
-    "Zeynep",
-    "Mert",
-    "Deniz",
-    "Ece",
+    "John",
+    "Michael",
+    "David",
+    "Emily",
+    "Sarah",
+    "Emma",
+    "Olivia",
+    "Daniel",
+    "James",
+    "Sophia",
   ];
+
   const lastNames = [
-    "Yilmaz",
-    "Kaya",
-    "Demir",
-    "Sahin",
-    "Celik",
-    "Aydin",
-    "Arslan",
-    "Dogan",
-    "Kilic",
-    "Aslan",
+    "Smith",
+    "Johnson",
+    "Brown",
+    "Taylor",
+    "Anderson",
+    "Thomas",
+    "Jackson",
+    "White",
+    "Harris",
+    "Martin",
   ];
+
   const streets = [
-    "Vatan Cd.",
-    "Mehmet Akif Sk.",
-    "Bagdat Cd.",
-    "Inonu Cd.",
-    "Gaziosmanpasa Sk.",
-    "Sehitler Cd.",
+    "Main St.",
+    "Oak Street",
+    "Maple Avenue",
+    "Pine Road",
+    "Cedar Lane",
+    "Elm Street",
   ];
+
   const districts = [
-    "Kadikoy",
-    "Besiktas",
-    "Sisli",
-    "Cankaya",
-    "Konak",
-    "Nilufer",
-    "Muratpasa",
+    "Downtown",
+    "Midtown",
+    "Uptown",
+    "Central",
+    "West Side",
+    "East Side",
   ];
-  const cities = ["Istanbul", "Ankara", "Izmir", "Bursa", "Antalya"];
 
-  // Email için: gerçek domaini spam’lememek adına örnek domain kullanıyoruz.
-  const safeDomains = ["example.com", "test.com", "mail.test"];
+  const cities = [
+    "New York",
+    "Los Angeles",
+    "Chicago",
+    "San Francisco",
+    "Seattle",
+    "Austin",
+  ];
 
-  const genPhoneTR = () => {
-    // TR formatına yakın: 5XXXXXXXXX
-    const start = "5" + randInt(0, 9);
+  // Use safe, non-real domains to avoid spamming real services.
+  const safeDomains = ["example.com", "testmail.com", "mail.test"];
+
+  // Generates a neutral/international-style phone number (for testing only)
+  const genPhone = () => {
+    const start = randInt(200, 999); // area-like prefix
     let rest = "";
-    for (let i = 0; i < 8; i++) rest += randInt(0, 9);
-    return start + rest; // 10 haneli
+    for (let i = 0; i < 7; i++) rest += randInt(0, 9);
+    return `${start}${rest}`; // 10 digits total
   };
 
   const genPassword = () => {
-    // Basit ama güçlü: 1 büyük + 1 küçük + 1 rakam + 1 özel + toplam 10-14
+    // Simple but strong: 1 uppercase + 1 lowercase + 1 digit + 1 special, total length 10–14
     const upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     const lower = "abcdefghijklmnopqrstuvwxyz";
     const digits = "0123456789";
@@ -85,25 +96,26 @@
     const all = upper + lower + digits + special;
     while (pwd.length < len) pwd += all[randInt(0, all.length - 1)];
 
-    // Karıştır
+    // Shuffle characters
     pwd = pwd
       .split("")
       .sort(() => Math.random() - 0.5)
       .join("");
+
     return pwd;
   };
 
   const makeRandomData = () => {
     const firstName = pick(firstNames);
     const lastName = pick(lastNames);
-    const uniq = Date.now().toString().slice(-6) + randInt(10, 99); // çakışmayı azaltır
+    const uniq = Date.now().toString().slice(-6) + randInt(10, 99); // reduces collisions
 
     const username = `${firstName.toLowerCase()}_${lastName.toLowerCase()}_${uniq}`;
     const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}+${uniq}@${pick(
       safeDomains
     )}`;
     const password = genPassword();
-    const address = `${pick(streets)} No:${randInt(1, 120)}, ${pick(
+    const address = `${pick(streets)} ${randInt(10, 999)}, ${pick(
       districts
     )}, ${pick(cities)}`;
 
@@ -114,7 +126,7 @@
       username,
       password,
       address,
-      phone: genPhoneTR(),
+      phone: genPhone(),
     };
   };
 
@@ -126,16 +138,17 @@
   const setValue = (el, value) => {
     if (!el) return false;
 
-    // readonly/disabled ise doldurma
+    // Skip if readonly/disabled
     if (el.disabled || el.readOnly) return false;
 
     el.focus();
     el.value = value;
 
-    // SPA frameworkleri için event tetikle
+    // Trigger events for SPA frameworks (React/Angular/etc.)
     el.dispatchEvent(new Event("input", { bubbles: true }));
     el.dispatchEvent(new Event("change", { bubbles: true }));
     el.blur();
+
     return true;
   };
 
@@ -156,27 +169,26 @@
       'input[name="firstname"]',
       'input[id*="first"][id*="name" i]',
       'input[placeholder*="First" i]',
-      'input[placeholder*="Ad" i]',
+      'input[placeholder*="Name" i]',
     ],
     lastName: [
       'input[name="lastName"]',
       'input[name="lastname"]',
       'input[id*="last"][id*="name" i]',
       'input[placeholder*="Last" i]',
-      'input[placeholder*="Soyad" i]',
+      'input[placeholder*="Surname" i]',
     ],
     email: [
       'input[type="email"]',
       'input[name="email"]',
       'input[id*="email" i]',
       'input[placeholder*="email" i]',
-      'input[placeholder*="e-posta" i]',
     ],
     username: [
       'input[name="username"]',
       'input[id*="user" i]',
       'input[placeholder*="username" i]',
-      'input[placeholder*="kullanıcı" i]',
+      'input[placeholder*="user name" i]',
     ],
     password: [
       'input[type="password"][name="password"]',
@@ -187,20 +199,19 @@
       'input[name*="confirm" i][type="password"]',
       'input[id*="confirm" i][type="password"]',
       'input[placeholder*="confirm" i][type="password"]',
-      'input[placeholder*="doğrula" i][type="password"]',
+      'input[placeholder*="re-enter" i][type="password"]',
     ],
     address: [
       'input[name="address"]',
       'input[id*="address" i]',
       'input[placeholder*="address" i]',
-      'input[placeholder*="adres" i]',
     ],
     phone: [
       'input[type="tel"]',
       'input[name*="phone" i]',
       'input[id*="phone" i]',
       'input[placeholder*="phone" i]',
-      'input[placeholder*="telefon" i]',
+      'input[placeholder*="mobile" i]',
     ],
   };
 
@@ -226,7 +237,7 @@
     setValue(findBySelectors(selectorsMap.username), data.username),
   ]);
 
-  // Password/Confirm logic
+  // Password / confirm password handling
   const allPasswordInputs = Array.from(
     document.querySelectorAll('input[type="password"]')
   );
@@ -264,9 +275,8 @@
   const okCount = results.filter((r) => r[1]).length;
   const fail = results.filter((r) => !r[1]).map((r) => r[0]);
 
-  console.log("QA Autofill ✅ Random data used:", data);
-  console.log(`QA Autofill: ${okCount}/${results.length} alan dolduruldu.`);
-  if (fail.length) console.warn("Doldurulamayan alanlar:", fail);
+  console.log("QA Autofill ✅ Random data generated:", data);
+  console.log(`QA Autofill: ${okCount}/${results.length} fields filled.`);
+  if (fail.length) console.warn("Fields not filled:", fail);
 
-  // İstersen mini toast gösterebiliriz (sonraki adım).
 })();
